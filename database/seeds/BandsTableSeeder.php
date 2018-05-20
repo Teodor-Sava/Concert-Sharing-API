@@ -22,7 +22,10 @@ class BandsTableSeeder extends Seeder
                 'country_id' => $faker->randomElement($countries),
                 'no_members' => $faker->randomNumber(1),
                 'founded_at' => $faker->date(),
-                'band_requests' => $faker->realText()
+                'band_requests' => $faker->realText(),
+                'long_description' => $faker->realText(),
+                'short_description' => $faker->realText(100),
+                'price' => $faker->randomNumber(4)
             ]);
         }
     }
