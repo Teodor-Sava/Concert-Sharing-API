@@ -16,22 +16,26 @@ class BandsController extends Controller
      */
     public function index(Request $request)
     {
-        $offset = 1;
         $limit = 20;
 
         $queryParams = $request->all();
-
-        if (isset($queryParams['offset'])) {
-            $offset = $queryParams['offset'];
-        }
 
         if (isset($queryParams['limit'])) {
             $limit = $queryParams['limit'];
         }
 
-        $bands = Band::with('genre','country')
-            ->orderBy('created_at','desc')
-            ->paginate($limit);
+        if (isset($queryParams['search'])) {
+            $searchParams = $queryParams['search'];
+            $bands = Band::with('genre', 'country')
+                ->where('name', 'LIKE', "%{$searchParams}%")
+                ->orderBy('created_at', 'desc')
+                ->paginate($limit);
+        } else {
+            $bands = Band::with('genre', 'country')
+                ->orderBy('created_at', 'desc')
+                ->paginate($limit);
+        }
+
 
         return response($bands);
     }
@@ -43,7 +47,7 @@ class BandsController extends Controller
      */
     public function create()
     {
-        //
+
     }
 
     /**
