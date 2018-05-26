@@ -19,5 +19,6 @@ class DatabaseSeeder extends Seeder
         $this->call(SpacesTableSeeder::class);
         $this->call(ConcertsTableSeeder::class);
         $this->call(TicketsTableSeeder::class);
+        $this->call(ReviewsTableSeeder::class);
     }
 }

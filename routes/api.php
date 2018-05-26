@@ -16,3 +16,13 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('/concerts', 'ConcertsController@index');
+
+Route::get('/bands', 'BandsController@index');
+
+Route::post('/bands', 'BandsController@create');
+
+Route::get('/countries', 'CountriesController@index');
+
+Route::get('/genres', 'GenresController@index');
