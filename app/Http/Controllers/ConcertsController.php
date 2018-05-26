@@ -14,7 +14,6 @@ class ConcertsController extends Controller
      */
     public function index(Request $request)
     {
-        $offset = 1;
         $limit = 20;
 
         $queryParams = $request->all();
@@ -27,11 +26,21 @@ class ConcertsController extends Controller
             $limit = $queryParams['limit'];
         }
 
-        $concerts = Concert::paginate($limit);
+        if (isset($queryParams['search'])) {
+            $searchParams = $queryParams['search'];
+            $limit = 10;
+            $concerts = Concert::with('band', 'space', 'user')
+                ->where('name', 'LIKE', "%{$searchParams}%")
+                ->orderBy('concert_start', 'desc')
+                ->paginate($limit);
+        } else {
+            $concerts = Concert::with('band', 'space', 'user')
+                ->orderBy('concert_start', 'desc')
+                ->paginate($limit);
+        }
 
-        return $concerts;
-//        $queryParams = $request->getCo
-//        if(isset($))
+
+        return response($concerts);
     }
 
     /**

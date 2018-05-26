@@ -18,4 +18,9 @@ class Band extends Model
     {
         return $this->belongsToMany('\App\Genre', 'band_genres');
     }
+
+    public function concert()
+    {
+        return $this->hasMany('\App\Concert', 'concert_id');
+    }
 }

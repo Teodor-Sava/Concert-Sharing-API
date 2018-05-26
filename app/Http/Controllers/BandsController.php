@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Band;
-use App\BandGenre;
-use App\Country;
 use Illuminate\Http\Request;
 
 class BandsController extends Controller
@@ -26,6 +24,7 @@ class BandsController extends Controller
 
         if (isset($queryParams['search'])) {
             $searchParams = $queryParams['search'];
+            $limit = 10;
             $bands = Band::with('genre', 'country')
                 ->where('name', 'LIKE', "%{$searchParams}%")
                 ->orderBy('created_at', 'desc')
@@ -43,11 +42,14 @@ class BandsController extends Controller
     /**
      * Show the form for creating a new resource.
      *
+     * @param Request $request
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
-
+        if (!empty($request->all)) {
+            return Band::create($request->all);
+        }
     }
 
     /**

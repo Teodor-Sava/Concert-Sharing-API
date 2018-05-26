@@ -20,3 +20,9 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get('/concerts', 'ConcertsController@index');
 
 Route::get('/bands', 'BandsController@index');
+
+Route::post('/bands', 'BandsController@create');
+
+Route::get('/countries', 'CountriesController@index');
+
+Route::get('/genres', 'GenresController@index');
