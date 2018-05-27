@@ -17,10 +17,15 @@ class CreateBandsTable extends Migration
             $table->increments('id');
             $table->string('name');
             $table->unsignedInteger('country_id');
+            $table->unsignedInteger('user_id');
             $table->integer('no_members');
             $table->date('founded_at');
             $table->text('band_requests');
-
+            $table->integer('price');
+            $table->text('short_description');
+            $table->text('long_description');
+            $table->text('image_url');
+            $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('country_id')->references('id')->on('countries');
 
             $table->timestamps();

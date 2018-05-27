@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Concert;
+use App\Http\Resources\ConcertResource;
+use App\Http\Resources\ConcertsResource;
 use Illuminate\Http\Request;
 
 class ConcertsController extends Controller
@@ -40,7 +42,7 @@ class ConcertsController extends Controller
         }
 
 
-        return response($concerts);
+        return response()->json($concerts, 200);
     }
 
     /**
@@ -70,9 +72,11 @@ class ConcertsController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Concert $concert)
     {
-        //
+        ConcertResource::withoutWrapping();
+
+        return response(new ConcertResource($concert));
     }
 
     /**

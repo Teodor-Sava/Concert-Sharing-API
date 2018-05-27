@@ -19,14 +19,36 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::group(['middleware' => 'auth:api'], function () {
 
-    Route::get('/countries', 'CountriesController@index');
+    // ======================= CRUD Bands ==================================
 
-    Route::get('/concerts', 'ConcertsController@index');
 
     Route::get('/bands', 'BandsController@index');
 
-    Route::post('/bands', 'BandsController@create');
+    Route::get('/bands/{band}', 'BandsController@show');
 
+    Route::post('/bands', 'BandsController@store');
+
+    Route::patch('/bands/{band}', 'BandsController@update');
+    // ======================= CRUD Concerts ==================================
+
+    Route::get('/concerts', 'ConcertsController@index');
+
+    Route::get('/concerts/{concert}', 'ConcertsController@show');
+
+    // ======================= Concerts Requests CRUD==================================
+
+    Route::get('/concert-requests/{user_id}','ConcertRequestController@showUserConcertRequests');
+
+    Route::get('/concert-requests/{band_id}','ConcertRequestController@showBandConcertRequests');
+
+    Route::post('/concert-requests/{concert_request}','ConcertRequestController@store');
+
+    Route::patch('/concert-requests/{concert_request}','ConcertRequestController@store');
+
+
+    // ======================= Different data =================================
+
+    Route::get('/countries', 'CountriesController@index');
 
     Route::get('/genres', 'GenresController@index');
 });
