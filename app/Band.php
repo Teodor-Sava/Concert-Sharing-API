@@ -16,7 +16,7 @@ class Band extends Model
 
     public function genre()
     {
-        return $this->belongsToMany('\App\Genre', 'band_genres');
+        return $this->belongsToMany('\App\Genre', 'band_genres','band_id','genre_id');
     }
 
     public function concert()

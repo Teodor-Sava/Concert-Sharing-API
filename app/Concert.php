@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Concert extends Model
 {
-    protected $fillable = ['name', 'band_id', 'space_id', 'available_tickets', 'total_tickets', 'concert_start', 'user_id', 'short_description', 'long_description'];
+    protected $fillable = ['name', 'band_id', 'space_id', 'available_tickets', 'total_tickets', 'concert_start', 'user_id', 'short_description', 'long_description', 'poster_url'];
 
     public function band()
     {

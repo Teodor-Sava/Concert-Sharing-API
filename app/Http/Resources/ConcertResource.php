@@ -36,7 +36,7 @@ class ConcertResource extends JsonResource
             "long_description" => $this->long_description
         ],
             "related_objects" => [
-                'band' => new BandResource(Band::find($this->band_id)),
+                'band' => new BandConcertResource(Band::find($this->band_id)),
                 'space' => new SpaceResource(Space::find($this->space_id)),
                 'user' => User::find($this->user_id)
             ]];

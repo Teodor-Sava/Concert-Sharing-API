@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Band;
 use App\BandGenre;
+use App\Http\Resources\BandResource;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -82,7 +83,7 @@ class BandsController extends Controller
             }
         }
 
-        return response()->json($band,201);
+        return response()->json($band, 201);
     }
 
     /**
@@ -93,7 +94,7 @@ class BandsController extends Controller
      */
     public function show(Band $band)
     {
-        return response()->json($band, 200);
+        return response(new BandResource($band));
     }
 
     /**

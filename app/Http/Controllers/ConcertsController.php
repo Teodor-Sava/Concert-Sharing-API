@@ -42,7 +42,7 @@ class ConcertsController extends Controller
         }
 
 
-        return response(new ConcertsResource($concerts));
+        return response()->json($concerts, 200);
     }
 
     /**

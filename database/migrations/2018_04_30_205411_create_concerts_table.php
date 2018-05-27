@@ -15,12 +15,20 @@ class CreateConcertsTable extends Migration
     {
         Schema::create('concerts', function (Blueprint $table) {
             $table->increments('id');
-            $table->unsignedInteger('band_id');
+            $table->string('name');
+            $table->unsignedInteger('band_id')->nullable();
             $table->foreign('band_id')->references('id')->on('bands');
-            $table->unsignedInteger('space_id');
+            $table->unsignedInteger('space_id')->nullable();
             $table->foreign('space_id')->references('id')->on('spaces');
-            $table->integer('available_tickets');
-            $table->integer('total_tickets');
+            $table->unsignedInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->dateTime('concert_start');
+            $table->integer('available_tickets')->nullable();
+            $table->integer('total_tickets')->nullable();
+            $table->text('short_description')->nullable();
+            $table->text('long_description')->nullable();
+            $table->text('poster_url')->nullable();
+            $table->boolean('concert_public')->nullable();
             $table->timestamps();
         });
     }

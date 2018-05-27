@@ -14,10 +14,7 @@ class AddUserIdAndPosterUrlConcerts extends Migration
     public function up()
     {
        Schema::table('concerts',function($table){
-           $table->unsignedInteger('user_id');
-           $table->text('poster_url');
 
-           $table->foreign('user_id')->references('id')->on('users');
        });
     }
 
