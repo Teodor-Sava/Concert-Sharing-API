@@ -30,6 +30,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/genres', 'GenresController@index');
 });
-Route::post('/register', 'AuthController@register');
-Route::post('/login', 'AuthController@login');
-
+Route::group(['prefix' => 'auth'], function () {
+    Route::post('/register', 'AuthController@register');
+    Route::post('/login', 'AuthController@login');
+});
