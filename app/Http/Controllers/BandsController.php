@@ -47,6 +47,18 @@ class BandsController extends Controller
      */
     public function create(Request $request)
     {
+
+
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
         $band = new Band();
 
         $band->name = $request->name;
@@ -70,19 +82,7 @@ class BandsController extends Controller
             }
         }
 
-        return response($band);
-
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
+        return response()->json($band,201);
     }
 
     /**
@@ -91,9 +91,9 @@ class BandsController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Band $band)
     {
-        //
+        return response()->json($band, 200);
     }
 
     /**
@@ -104,7 +104,8 @@ class BandsController extends Controller
      */
     public function edit($id)
     {
-        //
+
+
     }
 
     /**
@@ -114,9 +115,28 @@ class BandsController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Band $band)
     {
-        //
+        $band->name = $request->name;
+        $band->country_id = $request->country_id;
+        $band->no_members = $request->no_members;
+        $band->founded_at = new Carbon($request->founded_at);
+        $band->band_requests = $request->band_requests;
+        $band->price = $request->price;
+        $band->short_description = $request->short_description;
+        $band->long_description = $request->long_description;
+        $band->image_url = $request->image_url;
+        $band->user_id = auth()->user()->id;
+        $band->save();
+
+        if (!empty($request->genres)) {
+            foreach ($request->genres as $genre) {
+                BandGenre::create(array(
+                    'band_id' => $band->id,
+                    'genre_id' => $genre
+                ));
+            }
+        }
     }
 
     /**
