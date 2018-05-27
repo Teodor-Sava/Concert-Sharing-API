@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Band;
+use App\BandGenre;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class BandsController extends Controller
@@ -34,8 +36,6 @@ class BandsController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->paginate($limit);
         }
-
-
         return response($bands);
     }
 
@@ -47,9 +47,31 @@ class BandsController extends Controller
      */
     public function create(Request $request)
     {
-        if (!empty($request->all)) {
-            return Band::create($request->all);
+        $band = new Band();
+
+        $band->name = $request->name;
+        $band->country_id = $request->country_id;
+        $band->no_members = $request->no_members;
+        $band->founded_at = new Carbon($request->founded_at);
+        $band->band_requests = $request->band_requests;
+        $band->price = $request->price;
+        $band->short_description = $request->short_description;
+        $band->long_description = $request->long_description;
+        $band->image_url = $request->image_url;
+        $band->user_id = auth()->user()->id;
+        $band->save();
+
+        if (!empty($request->genres)) {
+            foreach ($request->genres as $genre) {
+                BandGenre::create(array(
+                    'band_id' => $band->id,
+                    'genre_id' => $genre
+                ));
+            }
         }
+
+        return response($band);
+
     }
 
     /**

@@ -17,12 +17,20 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/concerts', 'ConcertsController@index');
+Route::group(['middleware' => 'auth:api'], function () {
 
-Route::get('/bands', 'BandsController@index');
+    Route::get('/countries', 'CountriesController@index');
 
-Route::post('/bands', 'BandsController@create');
+    Route::get('/concerts', 'ConcertsController@index');
 
-Route::get('/countries', 'CountriesController@index');
+    Route::get('/bands', 'BandsController@index');
 
-Route::get('/genres', 'GenresController@index');
+    Route::post('/bands', 'BandsController@create');
+
+
+    Route::get('/genres', 'GenresController@index');
+});
+Route::group(['prefix' => 'auth'], function () {
+    Route::post('/register', 'AuthController@register');
+    Route::post('/login', 'AuthController@login');
+});
