@@ -5,7 +5,11 @@ namespace App\Http\Controllers;
 use App\Concert;
 use App\Http\Resources\ConcertResource;
 use App\Http\Resources\ConcertsResource;
+use App\Ticket;
+use App\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ConcertsController extends Controller
 {
@@ -45,10 +49,48 @@ class ConcertsController extends Controller
         return response()->json($concerts, 200);
     }
 
+    public function showAllUserConcerts(Request $request, User $user)
+    {
+        $concerts = Concert::find(Ticket::where('user_id', $user->id)->pluck('concert_id')->toArray());
+
+        if(count($concerts)<1){
+            return response()->json('No concerts found', 404);
+        }
+        return response()->json($concerts, 200);
+    }
+
+    public function showUserUpcomingConcerts(Request $request, User $user)
+    {
+        $allconcerts = Concert::find(Ticket::where('user_id', $user->id)->pluck('concert_id')->toArray());
+        $concerts = [];
+        foreach ($allconcerts as $concert) {
+            if ($concert->concert_start >= Carbon::today()->toDateString()) {
+                $concerts[] = $concert;
+            }
+        }
+        if(count($concerts)<1){
+            return response()->json('No concerts found', 404);
+        }
+        return response()->json($concerts, 200);
+    }
+
+    public function showUserPastConcerts(Request $request, User $user)
+    {
+        $allconcerts = Concert::find(Ticket::where('user_id', $user->id)->pluck('concert_id')->toArray());
+        $concerts = [];
+        foreach ($allconcerts as $concert) {
+            if ($concert->concert_start < Carbon::today()->toDateString()) {
+                $concerts[] = $concert;
+            }
+        }
+
+        return response()->json($concerts, 200);
+    }
     /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
+     *
      */
     public function create()
     {
@@ -63,7 +105,7 @@ class ConcertsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $concert = new Concert();
     }
 
     /**

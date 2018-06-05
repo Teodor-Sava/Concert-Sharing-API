@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Concert extends Model
 {
-    protected $fillable = ['name', 'band_id', 'space_id', 'available_tickets', 'total_tickets', 'concert_start', 'user_id', 'short_description', 'long_description', 'poster_url'];
+    protected $fillable = ['name', 'band_id', 'space_id', 'available_tickets', 'total_tickets', 'concert_start',  'short_description', 'long_description', 'poster_url'];
 
     public function band()
     {
@@ -21,5 +21,10 @@ class Concert extends Model
     public function user()
     {
         return $this->belongsTo('\App\User', 'id');
+    }
+
+    public function ticket()
+    {
+        return $this->hasMany('\App\Ticket', 'id');
     }
 }
