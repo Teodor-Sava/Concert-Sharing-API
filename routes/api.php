@@ -26,25 +26,55 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/bands/{band}', 'BandsController@show');
 
+    Route::get('/bands/user/{user}', 'BandsController@showUserBands');
+
     Route::post('/bands', 'BandsController@store');
 
     Route::patch('/bands/{band}', 'BandsController@update');
+
+    // ======================= Band Favorites ==================================
+
+    Route::get('/bands/favorites/{user}', 'BandsController@showFavoriteBands');
+
+    Route::post('/bands/favorites/{band}/user/{user}', 'BandsController@addBandToFavorites');
+
+    Route::delete('/bands/favorites/{band}/user/{user}', 'BandsController@removeBandFromFavorites');
     // ======================= CRUD Concerts ==================================
 
     Route::get('/concerts', 'ConcertsController@index');
 
     Route::get('/concerts/{concert}', 'ConcertsController@show');
 
+    Route::get('/concerts/users/{user}/all', 'ConcertsController@showAllUserConcerts');
+
+    Route::get('/concerts/users/{user}/upcoming', 'ConcertsController@showUserUpcomingConcerts');
+
+    Route::get('/concerts/users/{user}/past', 'ConcertsController@showUserUpcomingConcerts');
+
     // ======================= Concerts Requests CRUD==================================
 
-    Route::get('/concert-requests/{user_id}','ConcertRequestController@showUserConcertRequests');
+    Route::get('/concert-requests/{concert_request}', 'ConcertRequestController@show');
 
-    Route::get('/concert-requests/{band_id}','ConcertRequestController@showBandConcertRequests');
+    Route::get('/concert-requests/user/{user}', 'ConcertRequestController@showUserConcertRequests');
 
-    Route::post('/concert-requests/{concert_request}','ConcertRequestController@store');
+    Route::get('/concert-requests/band/ {band}', 'ConcertRequestController@showBandConcertRequests');
 
-    Route::patch('/concert-requests/{concert_request}','ConcertRequestController@store');
+    Route::post('/concert-requests', 'ConcertRequestController@store');
 
+    Route::patch('/concert-requests/{concert_request}', 'ConcertRequestController@update');
+
+
+    // ======================= Space Requests CRUD==================================
+
+    Route::get('/concert-requests/{concert_request}', 'ConcertRequestController@show');
+
+    Route::get('/concert-requests/user/{user}', 'ConcertRequestController@showUserConcertRequests');
+
+    Route::get('/concert-requests/band/ {band}', 'ConcertRequestController@showBandConcertRequests');
+
+    Route::post('/concert-requests', 'ConcertRequestController@store');
+
+    Route::patch('/concert-requests/{concert_request}', 'ConcertRequestController@update');
 
     // ======================= Different data =================================
 
@@ -52,6 +82,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/genres', 'GenresController@index');
 });
+
 Route::group(['prefix' => 'auth'], function () {
     Route::post('/register', 'AuthController@register');
     Route::post('/login', 'AuthController@login');

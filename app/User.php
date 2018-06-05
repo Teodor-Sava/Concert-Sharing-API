@@ -38,8 +38,13 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
-    public function concert()
+    public function band()
     {
+        $this->hasMany('\App\Band', 'user_id');
+    }
 
+    public function concerts()
+    {
+        $this->hasManyThrough('\App\Concert', '\App\Ticket', 'user_id', 'ticket_id', 'id', 'id');
     }
 }

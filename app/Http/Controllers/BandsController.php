@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Band;
 use App\BandGenre;
+use App\FavoriteBands;
 use App\Http\Resources\BandResource;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Intervention\Image\Facades\Image;
 
 class BandsController extends Controller
 {
@@ -32,10 +35,20 @@ class BandsController extends Controller
                 ->where('name', 'LIKE', "%{$searchParams}%")
                 ->orderBy('created_at', 'desc')
                 ->paginate($limit);
+            foreach ($bands as $band) {
+                $imagePath = $band->image;
+                $band->image = Image::make(public_path('uploads/band_pictures/') . $imagePath);
+
+            }
         } else {
             $bands = Band::with('genre', 'country')
                 ->orderBy('created_at', 'desc')
                 ->paginate($limit);
+            foreach ($bands as $band) {
+                $imagePath = $band->image;
+                $band->image = Image::make(public_path('uploads/band_pictures/') . $imagePath);
+
+            }
         }
         return response($bands);
     }
@@ -60,8 +73,12 @@ class BandsController extends Controller
      */
     public function store(Request $request)
     {
-        $band = new Band();
 
+        if (!empty(Band::where('name', $request->name)->first())) {
+            return response()->json('Name already exists', 409);
+        }
+
+        $band = new Band();
         $band->name = $request->name;
         $band->country_id = $request->country_id;
         $band->no_members = $request->no_members;
@@ -70,7 +87,15 @@ class BandsController extends Controller
         $band->price = $request->price;
         $band->short_description = $request->short_description;
         $band->long_description = $request->long_description;
-        $band->image_url = $request->image_url;
+
+        if ($request->get('image')) {
+
+            $image = $request->get('image');
+            $filename = time() . '.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
+            Image::make($request->get('image'))->resize(300, 300)->save(public_path('uploads/band_pictures/') . $filename);
+            $band->image_url = $filename;
+        }
+
         $band->user_id = auth()->user()->id;
         $band->save();
 
@@ -97,6 +122,13 @@ class BandsController extends Controller
         return response(new BandResource($band));
     }
 
+    public function showUserBands(User $user, Band $band)
+    {
+        $bands = Band::where('user_id', $user->id);
+        print_r($bands);
+        die();
+    }
+
     /**
      * Show the form for editing the specified resource.
      *
@@ -105,7 +137,6 @@ class BandsController extends Controller
      */
     public function edit($id)
     {
-
 
     }
 
@@ -146,6 +177,33 @@ class BandsController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
+
+    public function addBandToFavorites(Band $band, User $user)
+    {
+        FavoriteBands::firstOrCreate(
+            ['user_id' => $user->id, 'band_id' => $band->id]
+        );
+
+        return response()->json('Band added to favorites', 200);
+    }
+
+    public function removeBandFromFavorites(Band $band, User $user)
+    {
+        FavoriteBands::where('user_id', $user->id)->where('band_id', $band->id)->delete();
+
+        return response()->json('Band removed from favorites', 200);
+    }
+
+    public function showFavoriteBands(User $user)
+    {
+        $bands = Band::where('id',FavoriteBands::where('user_id', $user->id)->orderBy('created_at')->pluck('band_id'))->paginate(20);
+
+        if (count($bands) < 1) {
+            return response()->json('No favorite bands found', 404);
+        }
+        return response()->json($bands, 200);
+    }
+
     public function destroy($id)
     {
         //

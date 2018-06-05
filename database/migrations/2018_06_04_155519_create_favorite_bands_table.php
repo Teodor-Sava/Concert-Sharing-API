@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateUserDetailsTable extends Migration
+class CreateFavoriteBandsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,12 @@ class CreateUserDetailsTable extends Migration
      */
     public function up()
     {
-        Schema::create('user_details', function (Blueprint $table) {
+        Schema::create('favorite_bands', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
-            $table->date('dob');
-            $table->text('description');
-            $table->unsignedInteger('country_id');
-            $table->foreign('country_id')->references('id')->on('countries');
+            $table->unsignedInteger('band_id');
+            $table->foreign('band_id')->references('id')->on('bands');
             $table->timestamps();
         });
     }
@@ -32,6 +30,6 @@ class CreateUserDetailsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_details');
+        Schema::dropIfExists('favorite_bands');
     }
 }
