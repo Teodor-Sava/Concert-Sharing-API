@@ -2,30 +2,68 @@
 
 namespace App\Http\Controllers;
 
+use App\Band;
 use App\Concert;
 use App\ConcertRequest;
+use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ConcertRequestController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public function getPendingRequestForBandsAdmin(Band $band)
     {
-        $concerts = Concert::where('user_id', auth()->user()->id);
-        if (!empty($concert) && $concert->id === $concertRequest->concert_id) {
-            if ($request->status === true) {
-                $concertRequest->status = 'accepted';
-            } else {
-                $concertRequest->status = 'rejected';
-            }
-            $concertRequest->save();
-            return response()->json('Request has been updated', 200);
+        if ($band->user_id === auth()->user()->id) {
+            $concertRequest = ConcertRequest::where('band_id', $band->id)->where('band_status', 'pending')->get();
+            return response()->json($concertRequest, 200);
         }
-        return response()->json('User not allowed to modify the request', 404);
+        return response()->json('This user is not the administrator of any bands', 404);
+    }
+
+    public function getAcceptedRequestsForBandsAdmin(Band $band)
+    {
+        if ($band->user_id === auth()->user()->id) {
+            $concertRequest = ConcertRequest::where('band_id', $band->id)->where('band_status', 'accepted')->get();
+            return response()->json($concertRequest, 200);
+        }
+        return response()->json('This user is not the administrator of any bands', 404);
+    }
+
+    public function getRejectedRequestsForBandsAdmin(Band $band)
+    {
+        if ($band->user_id === auth()->user()->id) {
+            $concertRequest = ConcertRequest::where('band_id', $band->id)->where('band_status', 'rejected')->get();
+            return response()->json($concertRequest, 200);
+        }
+        return response()->json('This user is not the administrator of any bands', 404);
+    }
+
+    public function getRequestsForConcertAdmin(Concert $concert)
+    {
+        if ($concert->user_id === auth()->user()->id) {
+            $concertRequest = ConcertRequest::where('concert_id', $concert->id)->get();
+            return response()->json($concertRequest, 200);
+        }
+
+        return response()->json('This user is not the administrator of the concert', 404);
+    }
+
+    public function getAllRequestsForBandsAdmin()
+    {
+        $user_id = auth()->user()->id;
+        $bands = Band::where('bands.user_id', $user_id)
+            ->join('concert_requests', 'concert_requests.band_id', '=', 'bands.id')
+            ->select('bands.id', 'bands.name',
+                DB::raw('count(case when concert_requests.band_status= "rejected" then 1 else null end) as rejected_requests'),
+                DB::raw('count(case when concert_requests.band_status = "accepted" then 1 else null end) as accepted_requests'),
+                DB::raw('count(case when concert_requests.band_status = "pending" then 1 else null end) as pending_requests'))
+            ->groupBy('bands.id', 'bands.name')
+            ->get();
+
+        if ($bands) {
+            return response()->json($bands, 200);
+        }
+        return response()->json('No bands found', 404);
     }
 
     /**
@@ -46,12 +84,17 @@ class ConcertRequestController extends Controller
      */
     public function store(Request $request)
     {
-//        print_r($request->all());
-//        die();
-        $crequest = ConcertRequest::firstOrCreate(['user_id' => $request->user_id, 'band_id' => $request->band_id, 'concert_id' => $request->concert_id],
-            ['request_message' => $request->request_message, 'status' => 'pending']);
-        print_r($crequest);
-        die();
+        $user = auth()->user();
+
+        $concert = Concert::where('id', $request->concert_id)->where('user_id', $user->id);
+
+        if (!empty($concert)) {
+            ConcertRequest::firstOrCreate(['user_id' => $user->id, 'band_id' => $request->band_id, 'concert_id' => $request->concert_id],
+                ['request_message' => $request->request_message, 'band_status' => 'pending', 'concert_status' => 'pending']);
+
+            return response()->json('A request has been sent', 200);
+        }
+        return response()->json('Something went wrong', 409);
     }
 
     /**
@@ -83,14 +126,44 @@ class ConcertRequestController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, ConcertRequest $concertRequest)
+
+    public function confirmBandForConcert(Request $request, ConcertRequest $concertRequest)
     {
-        $concert = Concert::where('id', $concertRequest->concert_id)->firstOrFail();
-        if (!empty($concert) && $concert->user_id === auth()->user()->id) {
+        $message = '';
+        $concert = Concert::find($concertRequest->concert_id);
+        if ($concert->user_id === $concertRequest->user_id) {
+            if ($concertRequest->band_status === 'accepted') {
+                $concertRequest->concert_status = 'accepted';
+                $current_concert_requests = ConcertRequest::where('concert_id', $concert->id)->where('id', '!=', $concertRequest->id);
+                foreach ($current_concert_requests as $crequest) {
+                    $crequest->concert_status = 'rejected';
+                    $crequest->save();
+                }
+                $concert->band_id = $concertRequest->band_id;
+                if (isset($concert->space_id)) {
+                    $concert->concert_public = true;
+                    $message = "Concert has been made public";
+                } else {
+                    $message = 'Band is now playing at the concert';
+                }
+                $concertRequest->save();
+                $concert->save();
+                return response()->json($message, 200);
+            } else {
+                $message = 'Band did not accept to play at the concert';
+                return response()->json($message, 401);
+            }
+        }
+        $message = 'You are not authorized to complete this request';
+        return response()->json($message, 401);
+    }
+
+    public function changeBandStatusForConcert(Request $request, ConcertRequest $concertRequest)
+    {
+        $band = Band::where('id', $concertRequest->band_id)->firstOrFail();
+        if (!empty($band) && $band->user_id === auth()->user()->id) {
             if ($request->status === true) {
                 $concertRequest->status = 'accepted';
-                $concert->band_id = $concertRequest->band_id;
-                $concert->save();
             } else {
                 $concertRequest->status = 'rejected';
             }
@@ -106,8 +179,8 @@ class ConcertRequestController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function removeConcertRequest(ConcertRequest $concertRequest)
     {
-        //
+
     }
 }

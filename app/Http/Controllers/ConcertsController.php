@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Band;
 use App\Concert;
 use App\Http\Resources\ConcertResource;
 use App\Http\Resources\ConcertsResource;
@@ -49,11 +50,25 @@ class ConcertsController extends Controller
         return response()->json($concerts, 200);
     }
 
+    public function showBandUpcomingConcerts(Band $band)
+    {
+        $concerts = Concert::where('band_id', $band->id)->where('concert_start', '>', Carbon::now())->get();
+
+        return response()->json($concerts, 200);
+    }
+
+    public function showBandPastConcerts(Band $band)
+    {
+        $concerts = Concert::where('band_id', $band->id)->where('concert_start', '<', Carbon::now())->get();
+
+        return response()->json($concerts, 200);
+    }
+
     public function showAllUserConcerts(Request $request, User $user)
     {
         $concerts = Concert::find(Ticket::where('user_id', $user->id)->pluck('concert_id')->toArray());
 
-        if(count($concerts)<1){
+        if (count($concerts) < 1) {
             return response()->json('No concerts found', 404);
         }
         return response()->json($concerts, 200);
@@ -68,7 +83,7 @@ class ConcertsController extends Controller
                 $concerts[] = $concert;
             }
         }
-        if(count($concerts)<1){
+        if (count($concerts) < 1) {
             return response()->json('No concerts found', 404);
         }
         return response()->json($concerts, 200);
@@ -86,6 +101,7 @@ class ConcertsController extends Controller
 
         return response()->json($concerts, 200);
     }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -105,7 +121,30 @@ class ConcertsController extends Controller
      */
     public function store(Request $request)
     {
+        if (!empty(Concert::where('name', $request->name)->first())) {
+            return response()->json('Name already exists', 409);
+        }
         $concert = new Concert();
+
+        $concert->name = $request->name;
+        $concert->total_tickets = isset($request->total_tickets) ? $request->total_tickets : null;
+        $concert->available_tickets = isset($request->total_tickets) ? $request->total_tickets : null;
+        $concert->concert_start = isset($request->concert_start) ? $request->concert_start : '';
+        $concert->short_description = isset($request->short_description) ? $request->short_description : null;
+        $concert->long_description = isset($request->long_description) ? $request->long_description : null;
+
+        if ($request->get('image')) {
+
+            $image = $request->get('image');
+            $filename = time() . '.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
+            Image::make($request->get('image'))->resize(300, 300)->save(public_path('uploads/concert_pictures/') . $filename);
+            $concert->poster_url = $filename;
+        }
+        $concert->user_id = auth()->user()->id;
+
+        $concert->save();
+
+        return response()->json('Concert created', 200);
     }
 
     /**
@@ -129,7 +168,7 @@ class ConcertsController extends Controller
      */
     public function edit($id)
     {
-        //
+
     }
 
     /**
@@ -139,9 +178,60 @@ class ConcertsController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Concert $concert)
     {
-        //
+        if (!empty(Concert::where('name', $request->name)->first())) {
+            return response()->json('Name already exists', 409);
+        }
+
+        $concert->name = $request->name;
+        $concert->total_tickets = isset($request->total_tickets) ? $request->total_tickets : null;
+        $concert->available_tickets = isset($request->total_tickets) ? $request->total_tickets : null;
+        $concert->concert_start = isset($request->concert_start) ? $request->concert_start : '';
+        $concert->short_description = isset($request->short_description) ? $request->short_description : null;
+        $concert->long_description = isset($request->long_description) ? $request->long_description : null;
+
+        if ($request->get('image')) {
+
+            $image = $request->get('image');
+            $filename = time() . '.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
+            Image::make($request->get('image'))->resize(300, 300)->save(public_path('uploads/concert_pictures/') . $filename);
+            $concert->poster_url = $filename;
+        }
+        $concert->user_id = auth()->user()->id;
+
+        $concert->save();
+
+        return response()->json('Concert created', 200);
+    }
+
+    public function buyConcertTicket(Request $request, Concert $concert)
+    {
+        $no_tickets = $request->no_tickets;
+
+        if ($no_tickets > 0 && ($concert->available_tickets - $no_tickets > 0)) {
+            $concert->available_tickets -= $no_tickets;
+
+
+            if ($no_tickets > 1) {
+                for ($i = 0; $i < $no_tickets; $i++) {
+                    $ticket = new Ticket();
+                    $ticket->user_id = auth()->user()->id;
+                    $ticket->concert_id = $concert->id;
+                    $ticket->price = $request->ticket_price;
+                    $ticket->save();
+                }
+            } else {
+                $ticket = new Ticket();
+                $ticket->user_id = auth()->user()->id;
+                $ticket->concert_id = $concert->id;
+                $ticket->price = $request->ticket_price;
+                $ticket->save();
+            }
+
+            return response()->json('The tickets have been purchased', 200);
+        }
+        return response()->json('Something went wrong with your purchase', 401);
     }
 
     /**
