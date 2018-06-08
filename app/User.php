@@ -40,11 +40,26 @@ class User extends Authenticatable implements JWTSubject
 
     public function band()
     {
-        $this->hasMany('\App\Band', 'user_id');
+        return $this->hasMany('\App\Band', 'user_id');
     }
 
     public function concerts()
     {
-        $this->hasManyThrough('\App\Concert', '\App\Ticket', 'user_id', 'ticket_id', 'id', 'id');
+        return $this->hasManyThrough('\App\Concert', '\App\Ticket', 'user_id', 'ticket_id', 'id', 'id');
+    }
+
+    public function concertRequests()
+    {
+        return $this->hasMany('\App\ConcertRequest', 'user_id');
+    }
+
+    public function spaceRequests()
+    {
+        return $this->hasMany('\App\SpaceRequest', 'user_id');
+    }
+
+    public function review()
+    {
+        $this->hasMany('\App\Review','user_id');
     }
 }

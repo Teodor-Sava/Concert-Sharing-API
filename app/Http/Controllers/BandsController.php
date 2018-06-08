@@ -196,7 +196,7 @@ class BandsController extends Controller
 
     public function showFavoriteBands(User $user)
     {
-        $bands = Band::where('id',FavoriteBands::where('user_id', $user->id)->orderBy('created_at')->pluck('band_id'))->paginate(20);
+        $bands = Band::where('id', FavoriteBands::where('user_id', $user->id)->orderBy('created_at')->pluck('band_id'))->paginate(20);
 
         if (count($bands) < 1) {
             return response()->json('No favorite bands found', 404);
@@ -208,4 +208,5 @@ class BandsController extends Controller
     {
         //
     }
+
 }

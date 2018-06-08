@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ConcertRequest extends Model
 {
-    protected $fillable = ['user_id', 'concert_id', 'band_id', 'status','request_message'];
+    protected $fillable = ['user_id', 'concert_id', 'band_id', 'band_status','concert_status','request_message'];
 
     public function user()
     {
