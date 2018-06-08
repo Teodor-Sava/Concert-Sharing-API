@@ -13,7 +13,7 @@ class SpaceRequestController extends Controller
     public function showPendingRequestForSpaceAdmin(Space $space)
     {
         if ($space->user_id === auth()->user()->id) {
-            $space_request = SpaceRequest::where('space_id', $space->id)->where('status', 'pending')->get();
+            $space_request = SpaceRequest::where('space_id', $space->id)->where('space_status', 'pending')->get();
             return response()->json($space_request, 200);
         }
         return response()->json('This user is not the administrator of any bands', 404);
@@ -22,7 +22,7 @@ class SpaceRequestController extends Controller
     public function showAcceptedRequestsForBandsAdmin(Space $space)
     {
         if ($space->user_id === auth()->user()->id) {
-            $space_request = SpaceRequest::where('space_id', $space->id)->where('status', 'accepted')->get();
+            $space_request = SpaceRequest::where('space_id', $space->id)->where('space_status', 'accepted')->get();
             return response()->json($space_request, 200);
         }
         return response()->json('This user is not the administrator of any bands', 404);
@@ -31,7 +31,7 @@ class SpaceRequestController extends Controller
     public function showRejectedRequestsForBandsAdmin(Space $space)
     {
         if ($space->user_id === auth()->user()->id) {
-            $space_request = SpaceRequest::where('space_id', $space->id)->where('status', 'rejected')->get();
+            $space_request = SpaceRequest::where('space_id', $space->id)->where('space_status', 'rejected')->get();
             return response()->json($space_request, 200);
         }
         return response()->json('This user is not the administrator of any bands', 404);
@@ -120,13 +120,6 @@ class SpaceRequestController extends Controller
 
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @param  int $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, ConcertRequest $concertRequest)
     {
         $band = Band::where('id', $concertRequest->band_id)->firstOrFail();

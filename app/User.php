@@ -55,6 +55,11 @@ class User extends Authenticatable implements JWTSubject
 
     public function spaceRequests()
     {
-        return $this->hasMany('\App\SpaceRequest','user_id');
+        return $this->hasMany('\App\SpaceRequest', 'user_id');
+    }
+
+    public function review()
+    {
+        $this->hasMany('\App\Review','user_id');
     }
 }
