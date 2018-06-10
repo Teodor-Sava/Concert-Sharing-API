@@ -187,21 +187,34 @@ class BandsController extends Controller
         return response()->json('Band added to favorites', 200);
     }
 
-    public function removeBandFromFavorites(Band $band, User $user)
+    public function removeBandFromFavorites(Band $band)
     {
+        $user = auth()->user();
         FavoriteBands::where('user_id', $user->id)->where('band_id', $band->id)->delete();
 
         return response()->json('Band removed from favorites', 200);
     }
 
-    public function showFavoriteBands(User $user)
+    public function showFavoriteBands()
     {
-        $bands = Band::where('id', FavoriteBands::where('user_id', $user->id)->orderBy('created_at')->pluck('band_id'))->paginate(20);
+        $user = auth()->user();
+        if ($favorite_bands_ids = FavoriteBands::where('user_id', $user->id)->orderBy('created_at')->pluck('band_id')) {
+            $bands = Band::with('country', 'genre')->whereIn('id', $favorite_bands_ids)->paginate(20);
 
-        if (count($bands) < 1) {
-            return response()->json('No favorite bands found', 404);
+            return response()->json($bands, 200);
         }
-        return response()->json($bands, 200);
+        return response()->json('No favorite bands found', 404);
+
+    }
+
+    public function checkIfBandIsFavorite(Band $band)
+    {
+        $user = auth()->user();
+        if (!empty($favorite_band = FavoriteBands::where('user_id', $user->id)->where('band_id', $band->id))) {
+            return response()->json(true);
+        } else {
+            return response()->json(false);
+        }
     }
 
     public function destroy($id)

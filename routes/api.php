@@ -34,7 +34,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // ======================= Band Favorites ==================================
 
-    Route::get('/band-favorites/user/{user}', 'BandsController@showFavoriteBands');
+    Route::get('/band-favorites/user/current_user', 'BandsController@showFavoriteBands');
 
     Route::post('/band-favorites/band/{band}', 'BandsController@addBandToFavorites');
 
@@ -45,11 +45,11 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/concerts/{concert}', 'ConcertsController@show');
 
-    Route::get('/concerts/user/{user}', 'ConcertsController@showAllUserConcerts');
+    Route::get('/concerts/user/current_user', 'ConcertsController@showAllLoggedInUserConcerts');
 
-    Route::get('/concerts/upcoming/user/{user}', 'ConcertsController@showUserUpcomingConcerts');
+    Route::get('/concerts/user/{user}/upcoming', 'ConcertsController@showUserUpcomingConcerts');
 
-    Route::get('/concerts/past/user/{user}', 'ConcertsController@showUserUpcomingConcerts');
+    Route::get('/concerts/user/{user}/past', 'ConcertsController@showUserPastConcerts');
 
     Route::get('/concerts/upcoming/band/{band}', 'ConcertsController@showBandUpcomingConcerts');
 
@@ -117,6 +117,13 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::delete('/concerts/{concert}/reviews/{review}', 'ReviewsController@destroy');
 
+    // ======================= User Details CRUD==================================
+
+    Route::get('/users/{user}/details', 'UserDetailsController@getUserDetailsByUserID');
+
+    Route::post('/users/details', 'UserDetailsController@store');
+
+    Route::patch('/users/{user}/details', 'UserDetailsController@update');
     // ======================= Different data =================================
 
     Route::get('/countries', 'CountriesController@index');

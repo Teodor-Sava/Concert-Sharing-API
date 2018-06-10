@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Band;
+use App\Review;
 use App\Space;
 use App\User;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -38,7 +39,8 @@ class ConcertResource extends JsonResource
             "related_objects" => [
                 'band' => new BandConcertResource(Band::find($this->band_id)),
                 'space' => new SpaceResource(Space::find($this->space_id)),
-                'user' => User::find($this->user_id)
+                'user' => User::find($this->user_id),
+                'review' => Review::with('user')->where('concert_id', $this->id)->orderBy('created_at', 'desc')->get()
             ]];
     }
 }

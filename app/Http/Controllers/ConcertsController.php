@@ -64,9 +64,14 @@ class ConcertsController extends Controller
         return response()->json($concerts, 200);
     }
 
-    public function showAllUserConcerts(Request $request, User $user)
+    public function showAllLoggedInUserConcerts(Request $request)
     {
-        $concerts = Concert::find(Ticket::where('user_id', $user->id)->pluck('concert_id')->toArray());
+        $user = auth()->user();
+        $users_concerts = Ticket::where('user_id', $user->id)->distinct()->pluck('concert_id')->toArray();
+        $concerts = Concert::with('band', 'space', 'user')
+            ->whereIn('id', $users_concerts)
+            ->orderBy('concert_start', 'desc')
+            ->paginate();
 
         if (count($concerts) < 1) {
             return response()->json('No concerts found', 404);
@@ -76,13 +81,14 @@ class ConcertsController extends Controller
 
     public function showUserUpcomingConcerts(Request $request, User $user)
     {
-        $allconcerts = Concert::find(Ticket::where('user_id', $user->id)->pluck('concert_id')->toArray());
-        $concerts = [];
-        foreach ($allconcerts as $concert) {
-            if ($concert->concert_start >= Carbon::today()->toDateString()) {
-                $concerts[] = $concert;
-            }
-        }
+        $users_concerts = Ticket::where('user_id', $user->id)->distinct()->pluck('concert_id')->toArray();
+        $concerts = Concert::with('band', 'space', 'user')
+            ->whereIn('id', $users_concerts)
+            ->where('concert_start', '>', Carbon::now()->toDateString())
+            ->orderBy('concert_start', 'desc')
+            ->paginate();
+
+
         if (count($concerts) < 1) {
             return response()->json('No concerts found', 404);
         }
@@ -91,14 +97,16 @@ class ConcertsController extends Controller
 
     public function showUserPastConcerts(Request $request, User $user)
     {
-        $allconcerts = Concert::find(Ticket::where('user_id', $user->id)->pluck('concert_id')->toArray());
-        $concerts = [];
-        foreach ($allconcerts as $concert) {
-            if ($concert->concert_start < Carbon::today()->toDateString()) {
-                $concerts[] = $concert;
-            }
-        }
+        $users_concerts = Ticket::where('user_id', $user->id)->distinct()->pluck('concert_id')->toArray();
+        $concerts = Concert::with('band', 'space', 'user')
+            ->whereIn('id', $users_concerts)
+            ->where('concert_start', '<', Carbon::now()->toDateString())
+            ->orderBy('concert_start', 'desc')
+            ->paginate();
 
+        if (count($concerts) < 1) {
+            return response()->json('No concerts found', 404);
+        }
         return response()->json($concerts, 200);
     }
 
