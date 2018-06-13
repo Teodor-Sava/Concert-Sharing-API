@@ -45,8 +45,7 @@ class UserDetailsController extends Controller
     public function getUserDetailsByUserID(User $user)
     {
         $user_details = UserDetails::where('user_id', $user->id)->get();
-//        print_r(json_encode($user_details));
-//        die();
+
         if (count($user_details) > 0) {
             return response(new UserDetailsResource($user_details[0]));
         }
@@ -62,6 +61,16 @@ class UserDetailsController extends Controller
     public function edit(UserDetails $userDetails)
     {
 
+    }
+
+    public function getLoggedInUserData()
+    {
+        $user_details = UserDetails::with()->where('user_id', auth()->user()->id)->get();
+
+        if (count($user_details) > 0) {
+            return response(new UserDetailsResource($user_details[0]));
+        }
+        return response()->json('User details not found', 404);
     }
 
     /**

@@ -28,13 +28,18 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/bands/user/{user}', 'BandsController@showUserBands');
 
+    Route::get('/admin/bands', 'BandsController@getAllRequestsForBandsAdmin');
+
     Route::post('/bands', 'BandsController@store');
 
     Route::patch('/bands/{band}', 'BandsController@update');
 
+
     // ======================= Band Favorites ==================================
 
     Route::get('/band-favorites/user/current_user', 'BandsController@showFavoriteBands');
+
+    Route::get('/band-favorites/band/{band}/status', 'BandsController@checkIfBandIsFavorite');
 
     Route::post('/band-favorites/band/{band}', 'BandsController@addBandToFavorites');
 
@@ -67,7 +72,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/concert-requests/user/{user}', 'ConcertRequestController@showUserConcertRequests');
 
-    Route::get('/concert-requests/band/{band}/pending-requests', 'ConcertRequestController@showPendingRequestForBandsAdmin');
+    Route::get('/admin/bands/{band}/pending-requests', 'ConcertRequestController@getPendingRequestForBandsAdmin');
 
     Route::get('/concert-requests/band/{band}/accepted-requests', 'ConcertRequestController@showAcceptedRequestsForBandsAdmin');
 
@@ -75,9 +80,11 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/concert-requests/concert/{concert}', 'ConcertRequestController@showRequestsForConcertAdmin');
 
-    Route::get('/concert-requests/concerts', 'ConcertRequestController@getAllRequestsForBandsAdmin');
+
 
     Route::post('/concert-requests', 'ConcertRequestController@store');
+
+    Route::post('/concert-requests/{concert_reques}/band', 'ConcertRequestController@acceptConcertRequestByBand');
 
     Route::post('/concert-requests/{concert_request}/band/confirm', 'ConcertRequestController@confirmBandForConcert');
 

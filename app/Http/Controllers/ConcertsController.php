@@ -52,14 +52,24 @@ class ConcertsController extends Controller
 
     public function showBandUpcomingConcerts(Band $band)
     {
-        $concerts = Concert::where('band_id', $band->id)->where('concert_start', '>', Carbon::now())->get();
-
-        return response()->json($concerts, 200);
+        $concerts = Concert::where('band_id', $band->id)
+            ->where('concert_start', '>', Carbon::now())
+            ->orderBy('concert_start', 'desc')
+            ->get(['id', 'name', 'concert_start', 'total_tickets', 'available_tickets']);
+        if (count($concerts) > 0) {
+            return response()->json($concerts, 200);
+        }
+        return response()->json(false, 200);
     }
 
     public function showBandPastConcerts(Band $band)
     {
-        $concerts = Concert::where('band_id', $band->id)->where('concert_start', '<', Carbon::now())->get();
+        $concerts = Concert::where('band_id', $band->id)
+            ->with('space')
+            ->where('concert_start', '<', Carbon::now())
+            ->orderBy('concert_start', 'desc')
+            ->get()
+            ->pluck('id', 'name', 'concert_start', 'total_tickets', 'available_tickets');
 
         return response()->json($concerts, 200);
     }
