@@ -156,11 +156,10 @@ class ConcertRequestController extends Controller
 //        return response()->json('User not allowed to modify the request', 404);
 //    }
 
-    public function acceptConcertRequestByBand(ConcertRequest $concertRequest)
+    public function acceptConcertRequestByBand(ConcertRequest $concertRequest, Band $band)
     {
-        $band = Band::where('id', $concertRequest->band_id)->first();
         if (!empty($band) && $band->user_id === auth()->user()->id) {
-            $concertRequest->status = 'accepted';
+            $concertRequest->band_status = 'accepted';
             $concertRequest->save();
             return response()->json('Request has been updated', 200);
         }
@@ -169,7 +168,12 @@ class ConcertRequestController extends Controller
 
     public function declineConcertRequestByBand(ConcertRequest $concertRequest)
     {
-
+        if (!empty($band) && $band->user_id === auth()->user()->id) {
+            $concertRequest->band_status = 'rejected';
+            $concertRequest->save();
+            return response()->json('Request has been updated', 200);
+        }
+        return response()->json('User not allowed to modify the request', 404);
     }
 
     /**

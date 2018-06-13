@@ -81,10 +81,11 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/concert-requests/concert/{concert}', 'ConcertRequestController@showRequestsForConcertAdmin');
 
 
-
     Route::post('/concert-requests', 'ConcertRequestController@store');
 
-    Route::post('/concert-requests/{concert_reques}/band', 'ConcertRequestController@acceptConcertRequestByBand');
+    Route::post('/concert-requests/{concert_request}/band/{band}/accept', 'ConcertRequestController@acceptConcertRequestByBand');
+
+    Route::post('/concert-requests/{concert_request}/band/{band}/decline', 'ConcertRequestController@acceptConcertRequestByBand');
 
     Route::post('/concert-requests/{concert_request}/band/confirm', 'ConcertRequestController@confirmBandForConcert');
 
