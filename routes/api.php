@@ -19,16 +19,30 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::group(['middleware' => 'auth:api'], function () {
 
-    // ======================= CRUD Bands ==================================
+    // ======================= User Admin ==================================
 
+    Route::get('/admin/bands', 'BandsController@getAllRequestsForBandsAdmin');
+
+    Route::get('/admin/bands/{band}/pending-requests', 'ConcertRequestController@getPendingRequestForBandsAdmin');
+
+    Route::get('/admin/concerts', 'ConcertsController@getAllRequestsForConcertsAdmin');
+
+    Route::get('/admin/concerts/{concert}/bands/accepted', 'ConcertRequestController@getAcceptedBandRequestsForConcertAdmin');
+
+    Route::get('/admin/concerts/{concert}/spaces/accepted', 'SpaceRequestController@getAcceptedSpaceRequestsForConcertAdmin');
+
+    Route::get('/admin/bands/{band}/deals', 'BandsController@getDoneDealsForBandAdmin');
+
+    Route::get('/admin/spaces', 'SpaceRequestController@getAllRequestsForSpacesAdmin');
+
+    Route::get('/admin/spaces/{space}/pending-requests', 'SpaceRequestController@getRequestForSpaceAdmin');
+    // ======================= CRUD Bands ==================================
 
     Route::get('/bands', 'BandsController@index');
 
     Route::get('/bands/{band}', 'BandsController@show');
 
     Route::get('/bands/user/{user}', 'BandsController@showUserBands');
-
-    Route::get('/admin/bands', 'BandsController@getAllRequestsForBandsAdmin');
 
     Route::post('/bands', 'BandsController@store');
 
@@ -60,6 +74,10 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/concerts/past/band/{band}', 'ConcertsController@showBandPastConcerts');
 
+    Route::get('/concerts/upcoming/space/{space}', 'ConcertsController@getSpaceUpcomingConcerts');
+
+    Route::get('/concerts/past/space/{space}', 'ConcertsController@getSpacePastConcerts');
+
     Route::post('/concerts', 'ConcertsController@store');
 
     Route::post('/concerts/{concert}/buy-tickets', 'ConcertsController@buyConcertTicket');
@@ -71,8 +89,6 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/concert-requests/{concert_request}', 'ConcertRequestController@show');
 
     Route::get('/concert-requests/user/{user}', 'ConcertRequestController@showUserConcertRequests');
-
-    Route::get('/admin/bands/{band}/pending-requests', 'ConcertRequestController@getPendingRequestForBandsAdmin');
 
     Route::get('/concert-requests/band/{band}/accepted-requests', 'ConcertRequestController@showAcceptedRequestsForBandsAdmin');
 
@@ -95,6 +111,10 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/spaces', 'SpaceController@index');
 
+    Route::get('/spaces/{space}', 'SpaceController@show');
+
+    Route::get('/spaces/{space}/concerts', 'SpaceController@getConcertsForSpace');
+
     Route::post('/spaces', 'SpaceController@store');
 
     Route::patch('/spaces/{space}', 'SpaceController@update');
@@ -103,15 +123,19 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // ======================= Space Requests CRUD==================================
 
-    Route::get('/space-requests/{concert_request}', 'SpaceRequestController@show');
-
-    Route::get('/space-requests/user/{user}', 'SpaceRequestController@showUserConcertRequests');
-
-    Route::get('/space-requests/space/{space}', 'SpaceRequestController@showBandConcertRequests');
+    Route::get('/space-requests/{space-requests}', 'SpaceRequestController@show');
 
     Route::post('/space-requests', 'SpaceRequestController@store');
 
-    Route::patch('/space-requests/{concert_request}', 'SpaceRequestController@update');
+    Route::patch('/space-requests/{space-requests}', 'SpaceRequestController@update');
+
+
+    Route::post('/space-requests/{spaceRequest}/space/{space}/accept', 'SpaceRequestController@acceptSpaceRequestBySpaceAdmin');
+
+    Route::post('/space-requests/{spaceRequest}/space/{space}/decline', 'SpaceRequestController@declineSpaceRequestBySpaceAdmin');
+
+    Route::post('/space-requests/{spaceRequest}/space/confirm', 'SpaceRequestController@confirmSpaceForConcert');
+
 
     // ======================= Reviews Requests CRUD==================================
 
@@ -138,6 +162,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/genres', 'GenresController@index');
 });
+
 
 Route::group(['prefix' => 'auth'], function () {
     Route::post('/register', 'AuthController@register');

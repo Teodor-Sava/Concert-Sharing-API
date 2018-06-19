@@ -34,7 +34,8 @@ class ConcertResource extends JsonResource
             "user_id" => $this->user_id,
             "poster_url" => $this->poster_url,
             "short_description" => $this->short_description,
-            "long_description" => $this->long_description
+            "long_description" => $this->long_description,
+            "concert_public" => $this->concert_public
         ],
             "related_objects" => [
                 'band' => new BandConcertResource(Band::find($this->band_id)),

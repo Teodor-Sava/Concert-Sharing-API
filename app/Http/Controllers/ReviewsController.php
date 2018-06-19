@@ -49,8 +49,8 @@ class ReviewsController extends Controller
             $review->concert_id = $concert->id;
             $review->user_id = auth()->user()->id;
             $review->save();
-
-            $response = ['message' => 'A reviews has been added'];
+            $review->user = $review->user();
+            $response = ['message' => 'A reviews has been added', 'review' => $review];
             return response()->json($response, 201);
         }
 
