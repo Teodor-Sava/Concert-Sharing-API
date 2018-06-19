@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserDetailsResource;
+use App\User;
 use App\UserDetails;
 use Illuminate\Http\Request;
 
@@ -17,25 +19,21 @@ class UserDetailsController extends Controller
         //
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
+        $user_details = UserDetails::where('user_id', auth()->user()->id);
+        if (empty($user_details)) {
+            $user_details = new UserDetails();
+            $user_details->dob = $request->dob;
+            $user_details->description = $request->description;
+            $user_details->country_id = $request->country_id;
+            $user_details->user_id = auth()->user()->id;
+
+            $user_details->save();
+
+            return response()->json('User details created', 201);
+        }
+        return response()->json('User details already exist', 409);
     }
 
     /**
@@ -44,9 +42,14 @@ class UserDetailsController extends Controller
      * @param  \App\UserDetails $userDetails
      * @return \Illuminate\Http\Response
      */
-    public function show(UserDetails $userDetails)
+    public function getUserDetailsByUserID(User $user)
     {
-        //
+        $user_details = UserDetails::where('user_id', $user->id)->get();
+
+        if (count($user_details) > 0) {
+            return response(new UserDetailsResource($user_details[0]));
+        }
+        return response()->json('User details not found', 404);
     }
 
     /**
@@ -57,7 +60,17 @@ class UserDetailsController extends Controller
      */
     public function edit(UserDetails $userDetails)
     {
-        //
+
+    }
+
+    public function getLoggedInUserData()
+    {
+        $user_details = UserDetails::with()->where('user_id', auth()->user()->id)->get();
+
+        if (count($user_details) > 0) {
+            return response(new UserDetailsResource($user_details[0]));
+        }
+        return response()->json('User details not found', 404);
     }
 
     /**
@@ -67,9 +80,14 @@ class UserDetailsController extends Controller
      * @param  \App\UserDetails $userDetails
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, UserDetails $userDetails)
+    public function update(Request $request, User $user)
     {
-        //
+        $userDetails = UserDetails::where('user_id', $user->id)->first();
+        if ($user->id === auth()->user()->id) {
+            $userDetails->update($request->all());
+            return response()->json('Details have been modified', 201);
+        }
+        return response()->json('You are not authorized for this action', 401);
     }
 
     /**

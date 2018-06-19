@@ -19,8 +19,24 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::group(['middleware' => 'auth:api'], function () {
 
-    // ======================= CRUD Bands ==================================
+    // ======================= User Admin ==================================
 
+    Route::get('/admin/bands', 'BandsController@getAllRequestsForBandsAdmin');
+
+    Route::get('/admin/bands/{band}/pending-requests', 'ConcertRequestController@getPendingRequestForBandsAdmin');
+
+    Route::get('/admin/concerts', 'ConcertsController@getAllRequestsForConcertsAdmin');
+
+    Route::get('/admin/concerts/{concert}/bands/accepted', 'ConcertRequestController@getAcceptedBandRequestsForConcertAdmin');
+
+    Route::get('/admin/concerts/{concert}/spaces/accepted', 'SpaceRequestController@getAcceptedSpaceRequestsForConcertAdmin');
+
+    Route::get('/admin/bands/{band}/deals', 'BandsController@getDoneDealsForBandAdmin');
+
+    Route::get('/admin/spaces', 'SpaceRequestController@getAllRequestsForSpacesAdmin');
+
+    Route::get('/admin/spaces/{space}/pending-requests', 'SpaceRequestController@getRequestForSpaceAdmin');
+    // ======================= CRUD Bands ==================================
 
     Route::get('/bands', 'BandsController@index');
 
@@ -32,9 +48,12 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::patch('/bands/{band}', 'BandsController@update');
 
+
     // ======================= Band Favorites ==================================
 
-    Route::get('/band-favorites/user/{user}', 'BandsController@showFavoriteBands');
+    Route::get('/band-favorites/user/current_user', 'BandsController@showFavoriteBands');
+
+    Route::get('/band-favorites/band/{band}/status', 'BandsController@checkIfBandIsFavorite');
 
     Route::post('/band-favorites/band/{band}', 'BandsController@addBandToFavorites');
 
@@ -45,15 +64,19 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/concerts/{concert}', 'ConcertsController@show');
 
-    Route::get('/concerts/user/{user}', 'ConcertsController@showAllUserConcerts');
+    Route::get('/concerts/user/current_user', 'ConcertsController@showAllLoggedInUserConcerts');
 
-    Route::get('/concerts/upcoming/user/{user}', 'ConcertsController@showUserUpcomingConcerts');
+    Route::get('/concerts/user/{user}/upcoming', 'ConcertsController@showUserUpcomingConcerts');
 
-    Route::get('/concerts/past/user/{user}', 'ConcertsController@showUserUpcomingConcerts');
+    Route::get('/concerts/user/{user}/past', 'ConcertsController@showUserPastConcerts');
 
     Route::get('/concerts/upcoming/band/{band}', 'ConcertsController@showBandUpcomingConcerts');
 
     Route::get('/concerts/past/band/{band}', 'ConcertsController@showBandPastConcerts');
+
+    Route::get('/concerts/upcoming/space/{space}', 'ConcertsController@getSpaceUpcomingConcerts');
+
+    Route::get('/concerts/past/space/{space}', 'ConcertsController@getSpacePastConcerts');
 
     Route::post('/concerts', 'ConcertsController@store');
 
@@ -67,17 +90,18 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/concert-requests/user/{user}', 'ConcertRequestController@showUserConcertRequests');
 
-    Route::get('/concert-requests/band/{band}/pending-requests', 'ConcertRequestController@showPendingRequestForBandsAdmin');
-
     Route::get('/concert-requests/band/{band}/accepted-requests', 'ConcertRequestController@showAcceptedRequestsForBandsAdmin');
 
     Route::get('/concert-requests/band/{band}/rejected-requests', 'ConcertRequestController@showRejectedRequestsForBandsAdmin');
 
     Route::get('/concert-requests/concert/{concert}', 'ConcertRequestController@showRequestsForConcertAdmin');
 
-    Route::get('/concert-requests/concerts', 'ConcertRequestController@getAllRequestsForBandsAdmin');
 
     Route::post('/concert-requests', 'ConcertRequestController@store');
+
+    Route::post('/concert-requests/{concert_request}/band/{band}/accept', 'ConcertRequestController@acceptConcertRequestByBand');
+
+    Route::post('/concert-requests/{concert_request}/band/{band}/decline', 'ConcertRequestController@acceptConcertRequestByBand');
 
     Route::post('/concert-requests/{concert_request}/band/confirm', 'ConcertRequestController@confirmBandForConcert');
 
@@ -87,6 +111,10 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/spaces', 'SpaceController@index');
 
+    Route::get('/spaces/{space}', 'SpaceController@show');
+
+    Route::get('/spaces/{space}/concerts', 'SpaceController@getConcertsForSpace');
+
     Route::post('/spaces', 'SpaceController@store');
 
     Route::patch('/spaces/{space}', 'SpaceController@update');
@@ -95,15 +123,19 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // ======================= Space Requests CRUD==================================
 
-    Route::get('/space-requests/{concert_request}', 'SpaceRequestController@show');
-
-    Route::get('/space-requests/user/{user}', 'SpaceRequestController@showUserConcertRequests');
-
-    Route::get('/space-requests/space/{space}', 'SpaceRequestController@showBandConcertRequests');
+    Route::get('/space-requests/{space-requests}', 'SpaceRequestController@show');
 
     Route::post('/space-requests', 'SpaceRequestController@store');
 
-    Route::patch('/space-requests/{concert_request}', 'SpaceRequestController@update');
+    Route::patch('/space-requests/{space-requests}', 'SpaceRequestController@update');
+
+
+    Route::post('/space-requests/{spaceRequest}/space/{space}/accept', 'SpaceRequestController@acceptSpaceRequestBySpaceAdmin');
+
+    Route::post('/space-requests/{spaceRequest}/space/{space}/decline', 'SpaceRequestController@declineSpaceRequestBySpaceAdmin');
+
+    Route::post('/space-requests/{spaceRequest}/space/confirm', 'SpaceRequestController@confirmSpaceForConcert');
+
 
     // ======================= Reviews Requests CRUD==================================
 
@@ -117,12 +149,20 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::delete('/concerts/{concert}/reviews/{review}', 'ReviewsController@destroy');
 
+    // ======================= User Details CRUD==================================
+
+    Route::get('/users/{user}/details', 'UserDetailsController@getUserDetailsByUserID');
+
+    Route::post('/users/details', 'UserDetailsController@store');
+
+    Route::patch('/users/{user}/details', 'UserDetailsController@update');
     // ======================= Different data =================================
 
     Route::get('/countries', 'CountriesController@index');
 
     Route::get('/genres', 'GenresController@index');
 });
+
 
 Route::group(['prefix' => 'auth'], function () {
     Route::post('/register', 'AuthController@register');

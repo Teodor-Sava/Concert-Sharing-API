@@ -18,6 +18,7 @@ class ReviewsController extends Controller
     {
         $reviews = Review::with('user')
             ->where('concert_id', $concert->id)
+            ->orderBy('created_at', 'desc')
             ->paginate(20);
 
         return response()->json($reviews, 201);
@@ -48,8 +49,9 @@ class ReviewsController extends Controller
             $review->concert_id = $concert->id;
             $review->user_id = auth()->user()->id;
             $review->save();
-
-            return response()->json('A review has been added', 201);
+            $review->user = $review->user();
+            $response = ['message' => 'A reviews has been added', 'review' => $review];
+            return response()->json($response, 201);
         }
 
     }

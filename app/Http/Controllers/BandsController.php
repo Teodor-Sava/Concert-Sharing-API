@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Band;
 use App\BandGenre;
+use App\Concert;
 use App\FavoriteBands;
 use App\Http\Resources\BandResource;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
 
 class BandsController extends Controller
@@ -35,22 +37,13 @@ class BandsController extends Controller
                 ->where('name', 'LIKE', "%{$searchParams}%")
                 ->orderBy('created_at', 'desc')
                 ->paginate($limit);
-            foreach ($bands as $band) {
-                $imagePath = $band->image;
-                $band->image = Image::make(public_path('uploads/band_pictures/') . $imagePath);
 
-            }
         } else {
             $bands = Band::with('genre', 'country')
                 ->orderBy('created_at', 'desc')
                 ->paginate($limit);
-            foreach ($bands as $band) {
-                $imagePath = $band->image;
-                $band->image = Image::make(public_path('uploads/band_pictures/') . $imagePath);
-
-            }
         }
-        return response($bands);
+        return response()->json($bands);
     }
 
     /**
@@ -93,7 +86,7 @@ class BandsController extends Controller
             $image = $request->get('image');
             $filename = time() . '.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
             Image::make($request->get('image'))->resize(300, 300)->save(public_path('uploads/band_pictures/') . $filename);
-            $band->image_url = $filename;
+            $band->image_url = 'http://127.0.0.1:8000/uploads/band_pictures/'.$filename;
         }
 
         $band->user_id = auth()->user()->id;
@@ -178,30 +171,91 @@ class BandsController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function addBandToFavorites(Band $band, User $user)
+    public function getAllRequestsForBandsAdmin()
     {
-        FavoriteBands::firstOrCreate(
-            ['user_id' => $user->id, 'band_id' => $band->id]
-        );
+        $user_id = auth()->user()->id;
+//        print_r($user_id);
+//        die();
+        $bands = Band::where('bands.user_id', $user_id)
+            ->leftJoin('concert_requests', 'concert_requests.band_id', '=', 'bands.id')
+            ->select('bands.id', 'bands.name',
+                DB::raw('count(case when concert_requests.band_status= "rejected" then 1 else null end) as rejected_requests'),
+                DB::raw('count(case when concert_requests.band_status = "accepted" then 1 else null end) as accepted_requests'),
+                DB::raw('count(case when concert_requests.band_status = "pending" then 1 else null end) as pending_requests'))
+            ->groupBy('bands.id', 'bands.name')
+            ->get();
 
-        return response()->json('Band added to favorites', 200);
+        if ($bands) {
+            return response()->json($bands, 200);
+        }
+        return response()->json('No bands found', 404);
     }
 
-    public function removeBandFromFavorites(Band $band, User $user)
+    public function getDoneDealsForBandAdmin(Band $band)
     {
+        $user_id = auth()->user()->id;
+
+        $concerts = Concert::where('concerts.user_id', $user_id)
+            ->join('concert_requests', 'concert_requests.concert_id', '=', 'concerts.id')
+//            ->join('concert_requests','concert_requests.band_id', '=','')
+            ->select('concerts.id', 'concerts.name', 'concerts.concert_start')
+            ->where('concert_requests.band_id', $band->id)
+            ->where('concert_requests.concert_status', 'accepted')
+            ->where('concert_requests.band_status', 'accepted')
+            ->groupBy('concerts.id', 'concerts.name', 'concerts.concert_start')
+            ->paginate();
+//            ->get();
+        if ($concerts) {
+            return response()->json($concerts, 200);
+        }
+        return response()->json('This user is not the administrator of any bands', 404);
+    }
+
+    public function addBandToFavorites(Band $band)
+    {
+        $user = auth()->user();
+        if (!empty(FavoriteBands::where('user_id', $user->id)->where('band_id', $band->id)->first())) {
+            return response()->json('Band is already a favorite', 404);
+        }
+        $favorite_band = new FavoriteBands();
+        $favorite_band->user_id = $user->id;
+        $favorite_band->band_id = $band->id;
+        $favorite_band->save();
+
+        $response = ['message' => 'Band added to favorites'];
+        return response()->json($response, 200);
+    }
+
+    public function removeBandFromFavorites(Band $band)
+    {
+        $user = auth()->user();
         FavoriteBands::where('user_id', $user->id)->where('band_id', $band->id)->delete();
 
-        return response()->json('Band removed from favorites', 200);
+        $response = ['message' => 'Band removed from favorites'];
+        return response()->json($response, 200);
     }
 
-    public function showFavoriteBands(User $user)
+    public function showFavoriteBands()
     {
-        $bands = Band::where('id', FavoriteBands::where('user_id', $user->id)->orderBy('created_at')->pluck('band_id'))->paginate(20);
+        $user = auth()->user();
+        if ($favorite_bands_ids = FavoriteBands::where('user_id', $user->id)->orderBy('created_at')->pluck('band_id')) {
+            $bands = Band::with('country', 'genre')->whereIn('id', $favorite_bands_ids)->paginate(20);
 
-        if (count($bands) < 1) {
-            return response()->json('No favorite bands found', 404);
+            return response()->json($bands, 200);
         }
-        return response()->json($bands, 200);
+        return response()->json('No favorite bands found', 404);
+
+    }
+
+    public function checkIfBandIsFavorite(Band $band)
+    {
+        $user = auth()->user();
+
+        if (!empty($favorite_band = FavoriteBands::where('user_id', $user->id)->where('band_id', $band->id)->first())) {
+            return response()->json(true);
+        } else {
+            return response()->json(false);
+        }
     }
 
     public function destroy($id)
